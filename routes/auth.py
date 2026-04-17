@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, current_app
 from model import create_user, get_all_users, get_user_by_username, format_users
 from werkzeug.security import generate_password_hash, check_password_hash
+from utils.jwt_required import token_required
 import jwt
 import datetime
 
@@ -48,3 +49,11 @@ def login():
         }), 200
     else:
         return jsonify({"message": "Password salah"}), 401
+
+@auth.route("/profile", methods=["GET"])
+@token_required
+def profile(id):
+    return jsonify({
+        "message": "Akses diterima",
+        "user_id" : id
+        }), 200

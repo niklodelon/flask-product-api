@@ -1,20 +1,28 @@
-import jwt
-
-data = {"user": "deden"}
-
-token = jwt.encode(data, "secJHAJFE637W87Q238NFANVKNNVJS862378578JKBKVBret", algorithm="HS256")
-
-print(token)
-
-try:
-        data = jwt.decode(token,app.config["SECRET_KEY"],algorithm=["HS256"])
-    except:
-        return jsonify({"message": "Password salah"})
-    user_id = data["user_id"]
-
+user_id = data["user_id"]
     return jsonify({
         "message": "Akses diterima",
         "user_id" : user_id
         }), 200
 
-    return jsonify({"message": "Password salah"})
+di jwt_required
+import jwt
+from flask import jsonify, request
+def token_required(f):
+    def decorator():
+        auth_header = request.headers.get("Authorization")  
+        if not auth_header:
+            return jsonify({"message": "Token tidak valid"})
+        token = auth_header.split(" ")[1]
+        data = jwt.decode(token,app.config["SECRET_KEY"],algorithms=["HS256"])
+        if not data:
+            return jsonify({"message": "Token tidak valid"})
+        user_id = data["user_id"]
+    return f
+
+di route
+@app.route("/profile", methods=["GET"])
+@token_required
+def profile():
+    return jsonify({
+        "message": "Akses diterima",
+        }), 200
