@@ -2,6 +2,7 @@ from database import conn, cursor, init_db
 from flask import Flask, jsonify, request
 from model import get_all_products, insert_product, get_product_byid, update_product_byid, del_product, select_nama, select_max, select_by_sort, count_total, format_products, create_user, get_all_users, get_user_by_username, format_users
 from routes.auth import auth
+import jwt
 
 app = Flask(__name__)
 app.register_blueprint(auth)
@@ -12,14 +13,16 @@ init_db()
 
 @app.route("/profile", methods=["GET"])
 def profile():
-    auth_header = request.headers.get("Authorization")    
+    auth_header = request.headers.get("Authorization")  
     if not auth_header:
         return jsonify({"message": "Token tidak valid"})
     token = auth_header.split(" ")[1]
+    cek =jwt.decode(token,app.config["SECRET_KEY"],algorithms=["HS256"])
     try:
         data = jwt.decode(token,app.config["SECRET_KEY"],algorithms=["HS256"])
     except:
         return jsonify({"message": "Token tidak valid"})
+        
 
     user_id = data["user_id"]
     return jsonify({
