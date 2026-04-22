@@ -1,17 +1,15 @@
-from flask import jsonify, request
-from model import insert_product
+from database import conn, cursor, init_db
+from flask import Flask, jsonify, request
+from routes.auth import auth
+from routes.product import product
+import os
 
-def add_product_logic(data):
-    if not data:
-        return ({"message" : "Input tidak valid"}) , 400
-    if "nama" not in data:
-        return ({"message" : "Masukkan nama"}), 400
-    try :
-        harga = int(data["harga"])
-        stok = int(data["stok"])
-    except (ValueError, TypeError):
-        return ({"message" : "Input tidak valid"} , 400)
+app = Flask(__name__)
+app.register_blueprint(auth)
+app.register_blueprint(product)
+app.config["SECRET_KEY"] = "password_rahasia_delon"
 
-    insert_product(data["nama"],harga,stok) 
+init_db()
 
-    return ({"message": "Produk ditambahkan"})
+if __name__ == "__main__":
+    app.run(debug=True)
