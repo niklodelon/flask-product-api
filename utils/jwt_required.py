@@ -12,7 +12,7 @@ def token_required(f):
 		try :
 			data = jwt.decode(token,current_app.config["SECRET_KEY"],algorithms=["HS256"])
 		except:
-			return jsonify({"message": "Token tidak valid"})
+			return jsonify({"message": "Token tidak valid"}), 401
 		user_id = data["user_id"]
 		return f(user_id, *args, **kwargs)
 	return decorator

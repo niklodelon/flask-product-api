@@ -1,28 +1,17 @@
-user_id = data["user_id"]
-    return jsonify({
-        "message": "Akses diterima",
-        "user_id" : user_id
-        }), 200
-
-di jwt_required
-import jwt
 from flask import jsonify, request
-def token_required(f):
-    def decorator():
-        auth_header = request.headers.get("Authorization")  
-        if not auth_header:
-            return jsonify({"message": "Token tidak valid"})
-        token = auth_header.split(" ")[1]
-        data = jwt.decode(token,app.config["SECRET_KEY"],algorithms=["HS256"])
-        if not data:
-            return jsonify({"message": "Token tidak valid"})
-        user_id = data["user_id"]
-    return f
+from model import insert_product
 
-di route
-@app.route("/profile", methods=["GET"])
-@token_required
-def profile():
-    return jsonify({
-        "message": "Akses diterima",
-        }), 200
+def add_product_logic(data):
+    if not data:
+        return ({"message" : "Input tidak valid"}) , 400
+    if "nama" not in data:
+        return ({"message" : "Masukkan nama"}), 400
+    try :
+        harga = int(data["harga"])
+        stok = int(data["stok"])
+    except (ValueError, TypeError):
+        return ({"message" : "Input tidak valid"} , 400)
+
+    insert_product(data["nama"],harga,stok) 
+
+    return ({"message": "Produk ditambahkan"})

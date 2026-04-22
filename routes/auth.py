@@ -24,7 +24,7 @@ def get_users():
     rows = get_all_users()
     return jsonify(format_users(rows))
 
-#Login
+#Login dapet token
 @auth.route("/login", methods= ["POST"])
 def login():
     data = request.get_json()
@@ -50,9 +50,10 @@ def login():
     else:
         return jsonify({"message": "Password salah"}), 401
 
+#Cek profile
 @auth.route("/profile", methods=["GET"])
 @token_required
-def profile(id):
+def profile(user_id):
     return jsonify({
         "message": "Akses diterima",
         "user_id" : id

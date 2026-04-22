@@ -1,36 +1,33 @@
 from flask import Blueprint, jsonify, request, current_app
-from model import get_all_products, insert_product, get_product_byid, update_product_byid, del_product, select_nama, select_max, select_by_sort, count_total, format_products
+from model import get_all_products, get_product_byid, select_nama, select_max, select_by_sort, count_total, format_products
+from services.product_service import add_product_logic, update_product_logic, delete_product_logic
+from utils.jwt_required import token_required
 
 product = Blueprint("product", __name__)
 
+#Add Product
+@product.route("/products", methods =["POST"])
+@token_required
+def add_product(user_id):
+    data = request.get_json()
+    success, message = add_product_logic(data)
+    if not success:
+    	return jsonify({"message" : message}, 400)
+    else:
+    	return jsonify({"message" : message}, 201)
+
 #Get All Product
 @product.route("/products", methods=["GET"])
-def get_products():
+@token_required
+def get_products(user_id):
     rows = get_all_products()
     return jsonify(format_products(rows))
 
 
-#Add Product
-@product.route("/products", methods =["POST"])
-def add_product():
-    data = request.get_json()
-    #Validasi request
-    if not data:
-        return jsonify({"message" : "Input tidak valid"}) , 400
-    if "nama" not in data:
-        return jsonify({"message" : "Masukkan nama"}), 400
-    try :
-        harga = int(data["harga"])
-        stok = int(data["stok"])
-    except (ValueError, TypeError):
-        return jsonify({"message" : "Input tidak valid"} , 400)
-
-    insert_product(data["nama"],harga,stok)	
-    return jsonify({"message": "Produk ditambahkan"})
-
 #Get Product by Id
 @product.route("/products/<int:id>", methods=["GET"])
-def get_product(id):
+@token_required
+def get_product(user_id, id):
     product = get_product_byid(id)
     if product:
         return jsonify({
@@ -43,30 +40,30 @@ def get_product(id):
 
 #Update Product
 @product.route("/products/<int:id>", methods=["PUT"])
-def update_product(id):
+@token_required
+def update_product(user_id, id):
     data = request.get_json()
-    if not data:
-        return jsonify({"message" : "Input tidak valid"} , 400)
-    if "nama" not in data:
-        return jsonify({"message" : "Masukan nama"}) , 400
-    try :
-        harga = int(data["harga"])
-        stok = int(data["stok"])
-    except (ValueError, TypeError):
-        return jsonify({"message" : "Input tidak valid"} , 400)
+    success, message = update_product_logic(data,id)
+    if not success:
+    	return jsonify({"message" : message}, 400)
+    else:
+    	return jsonify({"message" : message}, 200)
 
-    update_product_byid(data["nama"],harga,stok,id)
-    return jsonify({"message": "Produk berhasil diupdate"})
 
 #Delete Product
 @product.route("/products/<int:id>", methods=["DELETE"])
-def delete_product(id):
-    del_product(id)
-    return jsonify({"message": "Produk berhasil dihapus"})
+@token_required
+def delete_product(user_id, id):
+    success, message = delete_product_logic(id)
+    if not success:
+    	return jsonify({"message" : message}, 400)
+    else:
+    	return jsonify({"message" : message}, 200)
 
 #Search Product by name
 @product.route("/products/search", methods=["GET"])
-def search_product():
+@token_required
+def search_product(user_id):
     nama = request.args.get("nama")
     if not nama:
         return jsonify({"message" : "Nama wajib diisi"} , 400)
@@ -79,7 +76,8 @@ def search_product():
 
 #Filter Product
 @product.route("/products/filter", methods=["GET"])
-def filter_harga():
+@token_required
+def filter_harga(user_id):
     maxHarga = request.args.get("max")
     #Validation maxHarga
     if not maxHarga:
@@ -97,7 +95,8 @@ def filter_harga():
 
 #Sorting Product
 @product.route("/products/sort", methods=["GET"])
-def sort_products():
+@token_required
+def sort_products(user_id):
     order = request.args.get("order")
     if not order:
         return jsonify({"message" : "Order tidak valid"} , 400)
@@ -107,7 +106,8 @@ def sort_products():
     return jsonify(format_products(rows))
 
 @product.route("/products/total", methods=["GET"])
-def total_products():
+@token_required
+def total_products(user_id):
     rows = count_total()
     total = rows[0]
     return jsonify({"total": total})
